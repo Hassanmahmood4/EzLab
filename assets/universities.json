@@ -1,0 +1,82 @@
+{
+  "nust": {
+    "full_name": "National University of Sciences and Technology (NUST)",
+    "logo_path": "assets/logos/nust.png"
+  },
+  "fast_nuces": {
+    "full_name": "National University of Computer and Emerging Sciences (FAST-NUCES)",
+    "logo_path": "assets/logos/fast_nuces.png"
+  },
+  "comsats": {
+    "full_name": "COMSATS University Islamabad",
+    "logo_path": "assets/logos/comsats.png"
+  },
+  "uet_lahore": {
+    "full_name": "University of Engineering and Technology (UET), Lahore",
+    "logo_path": "assets/logos/uet_lahore.png"
+  },
+  "giki": {
+    "full_name": "Ghulam Ishaq Khan Institute of Engineering Sciences and Technology (GIKI)",
+    "logo_path": "assets/logos/giki.png"
+  },
+  "pieas": {
+    "full_name": "Pakistan Institute of Engineering and Applied Sciences (PIEAS)",
+    "logo_path": "assets/logos/pieas.png"
+  },
+  "lums": {
+    "full_name": "Lahore University of Management Sciences (LUMS)",
+    "logo_path": "assets/logos/lums.png"
+  },
+  "ned": {
+    "full_name": "NED University of Engineering and Technology",
+    "logo_path": "assets/logos/ned.png"
+  },
+  "air_university": {
+    "full_name": "Air University, Islamabad",
+    "logo_path": "assets/logos/air_university.png"
+  },
+  "itu": {
+    "full_name": "Information Technology University (ITU), Lahore",
+    "logo_path": "assets/logos/itu.png"
+  },
+  "qau": {
+    "full_name": "Quaid-i-Azam University, Islamabad",
+    "logo_path": "assets/logos/qau.png"
+  },
+  "pu": {
+    "full_name": "University of the Punjab, Lahore",
+    "logo_path": "assets/logos/pu.png"
+  },
+  "pak_austria": {
+    "full_name": "Pak-Austria Fachhochschule Institute of Applied Sciences and Technology (PAF-IAST)",
+    "logo_path": "assets/logos/pak_austria.png"
+  },
+  "bahria": {
+    "full_name": "Bahria University",
+    "logo_path": "assets/logos/bahria.png"
+  },
+  "iiui": {
+    "full_name": "International Islamic University, Islamabad (IIUI)",
+    "logo_path": "assets/logos/iiui.png"
+  },
+  "numl": {
+    "full_name": "National University of Modern Languages (NUML)",
+    "logo_path": "assets/logos/numl.png"
+  },
+  "szabist": {
+    "full_name": "Shaheed Zulfikar Ali Bhutto Institute of Science and Technology (SZABIST)",
+    "logo_path": "assets/logos/szabist.png"
+  },
+  "iba": {
+    "full_name": "Institute of Business Administration (IBA), Karachi",
+    "logo_path": "assets/logos/iba.png"
+  },
+  "riphah": {
+    "full_name": "Riphah International University",
+    "logo_path": "assets/logos/riphah.png"
+  },
+  "uet_taxila": {
+    "full_name": "University of Engineering and Technology (UET), Taxila",
+    "logo_path": "assets/logos/uet_taxila.png"
+  }
+}
