@@ -1,0 +1,3 @@
+# Place the fine-tuned GGUF here (gitignored)
+labpulse-1.5b-q4_k_m.gguf
+*.gguf

@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# MLX / model caches
+.cache/
+mlx_models/
+*.gguf
+
+# Generated outputs
+outputs/
+*.pdf
+!templates/**
+plot.png
+resolved_report.json
+
+# Local tooling
+.venv/
+bin/typst
+bin/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Keep adapters tracked once trained; ignore checkpoints mid-train
+adapters/checkpoint_*/
+adapters/*.pt
+
+# Local GGUF weights (download from Colab)
+models/*.gguf
+bin/
+.venv/
+
+# Frontend
+web/node_modules/
+web/.next/
+web/*.tsbuildinfo
+
+# Local agent / design working files
+.claude/
+.impeccable/

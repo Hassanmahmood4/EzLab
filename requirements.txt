@@ -1,0 +1,27 @@
+# Least-resource local inference (Windows + macOS) — wraps llama.cpp
+llama-cpp-python>=0.3.0
+
+# Schema & validation
+pydantic>=2.7.0
+
+# Document export
+docxtpl>=0.18.0
+python-docx>=1.1.0
+
+# Plots
+matplotlib>=3.8.0
+Pillow>=10.0.0
+
+# Local API for Next.js demo frontend
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9
+
+# Lab manual parsing (local, offline)
+pypdf>=4.2.0
+
+# Utilities
+httpx>=0.27.0
+pyyaml>=6.0.1
+numpy>=1.26.0
+psutil>=5.9.0
