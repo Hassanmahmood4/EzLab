@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-franklin), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, Menlo, Consolas, monospace;
+
+  /* Ballpoint navy: shell, primary actions, navigation */
+  --color-navy: #22305e;
+  --color-navy-deep: #1a2548;
+  --color-navy-soft: #2d3d74;
+  --color-navy-tint: #e8ebf4;
+  --color-navy-mist: #b9c3e4;
+
+  /* Working sheets on a cool ground */
+  --color-ground: #f5f6f8;
+  --color-sheet: #ffffff;
+  --color-well: #eceef2;
+  --color-rule: #e1e4e8;
+  --color-rule-strong: #cdd2da;
+
+  /* Text */
+  --color-ink: #1e2333;
+  --color-body: #2f3546;
+  --color-mute: #646b7c;
+  --color-graphite: #4a4a4a;
+
+  /* Graph green: traced to your data, and nothing else */
+  --color-trace: #2f7d50;
+  --color-trace-strong: #24643f;
+  --color-trace-tint: #e6f2ea;
+  --color-grid: #cfe6d6;
+  --color-grid-fine: #e8f3ec;
+
+  /* States */
+  --color-warn: #a8620c;
+  --color-warn-tint: #fff4e0;
+  --color-warn-rule: #f0d3a1;
+  --color-error: #b42318;
+  --color-error-tint: #fdecea;
+
+  --shadow-sheet: 0 1px 2px rgb(30 35 51 / 0.06), 0 1px 1px rgb(30 35 51 / 0.04);
+  --shadow-page: 0 1px 3px rgb(30 35 51 / 0.12), 0 8px 24px -12px rgb(30 35 51 / 0.18);
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-navy);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  ::selection {
+    background: var(--color-navy-tint);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-rule-strong) transparent;
+  }
+
+  input,
+  textarea {
+    caret-color: var(--color-navy);
+  }
+
+  kbd {
+    display: inline-block;
+    min-width: 1.4em;
+    padding: 0 0.3em;
+    border: 1px solid var(--color-rule-strong);
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    background: var(--color-sheet);
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    line-height: 1.5;
+    text-align: center;
+    color: var(--color-body);
+  }
+}
+
+@layer components {
+  /* Journal section head: small tracked navy caps on a navy rule */
+  .journal-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1.5px solid var(--color-navy);
+    padding-bottom: 0.35rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .journal-head > h2,
+  .journal-head > h3 {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-navy);
+  }
+
+  .pencil {
+    font-style: italic;
+    color: var(--color-graphite);
+  }
+
+  /* Millimetre graph sheet, used only behind the plot */
+  .graph-sheet {
+    background-color: var(--color-sheet);
+    background-image:
+      linear-gradient(var(--color-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-grid) 1px, transparent 1px),
+      linear-gradient(var(--color-grid-fine) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-grid-fine) 1px, transparent 1px);
+    background-size: 50px 50px, 50px 50px, 10px 10px, 10px 10px;
+  }
+
+  /* While one prose field is being edited, the rest of the journal recedes */
+  .journal:has(.prose-field:focus) .journal-section:not(:has(.prose-field:focus)) {
+    opacity: 0.45;
+  }
+
+  .journal-section {
+    transition: opacity 200ms var(--ease-out-quart);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
