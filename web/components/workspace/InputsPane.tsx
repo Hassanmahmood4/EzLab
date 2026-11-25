@@ -68,9 +68,17 @@ export function InputsPane({ ws }: { ws: Workspace }) {
             <div className="flex items-center justify-between gap-2 rounded-md border border-rule bg-sheet px-3 py-2">
               <div className="min-w-0">
                 <p className="truncate text-[0.8125rem] font-semibold text-ink">{ws.manual.name}</p>
-                <p className="text-xs text-mute">Fields below were filled from this manual. Check them.</p>
+                <p className="text-xs text-mute">
+                  {ws.tasks.length
+                    ? `${ws.tasks.length} task${ws.tasks.length === 1 ? "" : "s"} detected — the model will write code & output`
+                    : "Manual loaded — the model will write solutions from it"}
+                </p>
               </div>
-              <button type="button" onClick={ws.clearManual} className="shrink-0 rounded px-2 py-1 text-xs font-semibold text-navy hover:bg-navy-tint">
+              <button
+                type="button"
+                onClick={ws.clearManual}
+                className="shrink-0 rounded px-2 py-1 text-xs font-semibold text-navy hover:bg-navy-tint"
+              >
                 Remove
               </button>
             </div>
@@ -79,7 +87,7 @@ export function InputsPane({ ws }: { ws: Workspace }) {
               size="sm"
               accept=".pdf,.docx,.txt,.md"
               title="Upload lab manual"
-              detail="PDF, Word, or text — the report is written from this"
+              detail="PDF, Word, or text — only this is required"
               onFile={ws.loadManual}
               busy={ws.manualLoading}
               disabled={busy}
@@ -87,11 +95,39 @@ export function InputsPane({ ws }: { ws: Workspace }) {
             />
           )}
           <div className="grid grid-cols-[1fr_6.5rem] gap-3">
-            <TextField label="Course code" placeholder="CS-218" value={ws.lab.course_code} onChange={(e) => ws.updateLab("course_code", e.target.value)} error={ws.errors.course_code} disabled={busy} />
-            <TextField label="Lab no." placeholder="Lab 05" value={ws.lab.lab_number} onChange={(e) => ws.updateLab("lab_number", e.target.value)} error={ws.errors.lab_number} disabled={busy} />
+            <TextField
+              label="Course code"
+              placeholder="CS-100"
+              value={ws.lab.course_code}
+              onChange={(e) => ws.updateLab("course_code", e.target.value)}
+              error={ws.errors.course_code}
+              disabled={busy}
+            />
+            <TextField
+              label="Lab no."
+              placeholder="Lab 05"
+              value={ws.lab.lab_number}
+              onChange={(e) => ws.updateLab("lab_number", e.target.value)}
+              error={ws.errors.lab_number}
+              disabled={busy}
+            />
           </div>
-          <TextField label="Course title" placeholder="Data Structures Lab" value={ws.lab.course_title} onChange={(e) => ws.updateLab("course_title", e.target.value)} error={ws.errors.course_title} disabled={busy} />
-          <TextField label="Experiment title" placeholder="MergeSort vs QuickSort runtime" value={ws.lab.experiment_title} onChange={(e) => ws.updateLab("experiment_title", e.target.value)} error={ws.errors.experiment_title} disabled={busy} />
+          <TextField
+            label="Course title"
+            placeholder="Machine Learning Lab"
+            value={ws.lab.course_title}
+            onChange={(e) => ws.updateLab("course_title", e.target.value)}
+            error={ws.errors.course_title}
+            disabled={busy}
+          />
+          <TextField
+            label="Experiment title"
+            placeholder="Data Visualization and EDA"
+            value={ws.lab.experiment_title}
+            onChange={(e) => ws.updateLab("experiment_title", e.target.value)}
+            error={ws.errors.experiment_title}
+            disabled={busy}
+          />
           <TextField
             label="Department"
             placeholder={profile?.department || "Department of Computer Science"}
@@ -103,8 +139,39 @@ export function InputsPane({ ws }: { ws: Workspace }) {
             error={ws.errors.department}
             disabled={busy}
           />
+          <TextField
+            label="Semester (optional)"
+            placeholder="5"
+            value={ws.semester}
+            onChange={(e) => ws.setSemester(e.target.value)}
+            disabled={busy}
+          />
           <SamplePresets presets={ws.presets} onPick={ws.loadPreset} label="Or try a sample lab:" />
         </section>
+
+        {ws.tasks.length > 0 && (
+          <section aria-labelledby="tasks-head" className="space-y-2">
+            <h2 id="tasks-head" className="text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-mute">
+              Detected tasks
+            </h2>
+            <ul className="space-y-2">
+              {ws.tasks.map((task, index) => (
+                <li
+                  key={`${task.number}-${index}`}
+                  className="rounded-md border border-rule bg-sheet px-3 py-2 text-[0.8125rem]"
+                >
+                  <p className="font-semibold text-ink">
+                    Task {task.number}
+                    {task.title ? ` — ${task.title}` : ""}
+                  </p>
+                  {task.prompt.trim() && (
+                    <p className="mt-1 line-clamp-2 text-xs text-mute">{task.prompt}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
 
       <div className="border-t border-rule bg-sheet px-5 py-4">
@@ -112,7 +179,7 @@ export function InputsPane({ ws }: { ws: Workspace }) {
           {busy ? "Generating…" : ws.phase === "ready" ? "Generate again" : "Generate report"}
         </Button>
         <p className="mt-1.5 text-center text-xs text-mute">
-          <kbd className="font-sans">Ctrl</kbd> + <kbd className="font-sans">Enter</kbd> · runs on this laptop, nothing is uploaded
+          Model writes code &amp; output from your manual → Word + PDF
         </p>
       </div>
     </div>

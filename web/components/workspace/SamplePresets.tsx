@@ -7,7 +7,7 @@ interface Props {
   disabled?: boolean;
 }
 
-/** One-click sample labs, for trying LabPulse without a manual of your own. */
+/** One-click sample labs, for trying EzLab without a manual of your own. */
 export function SamplePresets({ presets, onPick, label, disabled }: Props) {
   if (presets.length === 0) return null;
   return (
