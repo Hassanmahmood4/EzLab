@@ -1,289 +1,117 @@
 [
   {
-    "id": "pf-loop-runtime",
-    "label": "PF Loop Runtime w/ Unit Bug",
+    "id": "pf_hello_tasks",
+    "label": "PF — Sum, factorial, primes",
     "university_id": "fast_nuces",
     "profile": {
-      "name": "Areeba Malik",
-      "registration_no": "19F-9222",
-      "section": "BIT-6A",
-      "university": "FAST-NU Isb",
-      "instructor": "Ms. Hira Sheikh",
-      "date": "2026-07-01"
+      "name": "Hassan Ali",
+      "registration_no": "21L-5042",
+      "section": "BCS-2A",
+      "university": "FAST-NUCES",
+      "instructor": "Dr. Sana Malik",
+      "date": "2026-11-26"
     },
     "lab": {
       "course_code": "CS-100",
       "course_title": "Programming Fundamentals Lab",
-      "lab_number": "Lab 10",
-      "experiment_title": "Loop Runtime Profiling with Nested Iterations",
-      "department": "Department of Software Engineering"
+      "lab_number": "Lab 01",
+      "experiment_title": "Input, Loops and Functions",
+      "department": "Department of Computer Science"
     },
-    "raw_log": "# experiment=Loop Runtime Profiling with Nested Iterations\nN,LoopA (ms),LoopB (ms),Speedup\n1000,1.23,1.26,0.98\n10000,1.03,1.25,0.82\n100000,2.77,16.55,0.17\n1000000,21.63,14.67,1.47\n# RAW_ANOMALY_HINT 100000,...,0.0028s\n# corrupted_observation,1000,0.0012s,1.26,0.98",
-    "answer": {
-      "cover_page": {
-        "university_id": "fast_nuces",
-        "university_raw": "FAST-NU Isb",
-        "department": "Department of Software Engineering",
-        "course_code": "CS-100",
-        "course_title": "Programming Fundamentals Lab",
-        "lab_number": "Lab 10",
-        "experiment_title": "Loop Runtime Profiling with Nested Iterations",
-        "student_name": "Areeba Malik",
-        "registration_no": "19F-9222",
-        "section": "BIT-6A",
-        "instructor": "Ms. Hira Sheikh",
-        "submission_date": "2026-07-01"
-      },
-      "anomaly_check": {
-        "status": "warning",
-        "flags": [
-          "Entry '100000' recorded as 0.0028 s while sibling rows use ms (1000x unit mismatch detected and normalized to 2.77 ms)."
-        ]
-      },
-      "report_body": {
-        "abstract": "This lab investigated loop runtime profiling with nested iterations. Measurements were collected for N across 4 configurations using a controlled timing harness. The primary metric was wall-clock runtime in milliseconds for LoopA. At the largest setting, LoopA averaged 21.63 ms.",
-        "apparatus": [
-          "Python 3.11",
-          "time.perf_counter harness",
-          "CSV runtime log"
-        ],
-        "methodology": "Implemented both loop variants, executed each size three times, and logged mean runtime to CSV.",
-        "equations_latex": [
-          "T(N)=\\sum_{i=1}^{N} t_i",
-          "\\text{Speedup}=T_A/T_B"
-        ],
-        "tables": [
-          {
-            "caption": "Loop Runtime Profiling with Nested Iterations — measured results",
-            "headers": [
-              "N",
-              "LoopA (ms)",
-              "LoopB (ms)",
-              "Speedup"
-            ],
-            "rows": [
-              [
-                "1000",
-                "1.23",
-                "1.26",
-                "0.98"
-              ],
-              [
-                "10000",
-                "1.03",
-                "1.25",
-                "0.82"
-              ],
-              [
-                "100000",
-                "2.77",
-                "16.55",
-                "0.17"
-              ],
-              [
-                "1000000",
-                "21.63",
-                "14.67",
-                "1.47"
-              ]
-            ]
-          }
-        ],
-        "plot_code": "import matplotlib.pyplot as plt\nx = [1000.0, 10000.0, 100000.0, 1000000.0]\nplt.figure(figsize=(6, 4))\nplt.plot(x, [1.23, 1.03, 2.77, 21.63], marker='o', label='LoopA')\nplt.plot(x, [1.26, 1.25, 16.55, 14.67], marker='o', label='LoopB')\nplt.xlabel('N')\nplt.ylabel('Runtime (ms)')\nplt.title('Loop Runtime Profiling with Nested Iterations')\nplt.legend()\nplt.grid(True)\nplt.tight_layout()\nplt.savefig('plot.png', dpi=300)",
-        "discussion": "Results show how LoopA scales with N. A unit mismatch was present in the raw log and normalized to milliseconds before analysis. Trends align with expected algorithmic or system behaviour for this exercise. Variance across trials was low enough for comparative conclusions.",
-        "conclusion": "The experiment confirmed expected behaviour for Loop Runtime Profiling with Nested Iterations. All tabulated values are grounded in the uploaded raw log after anomaly normalization."
-      }
-    }
+    "semester": "2",
+    "manual_text": "Lab 01: Input, Loops and Functions\n\nTask 1 — Hello and sum\nWrite a program that reads two integers and prints their sum.\n\nTask 2 — Factorial\nWrite a function that returns n! for n >= 0 and print factorial(5).\n\nTask 3 — Primality sieve\nPrint the list of prime numbers less than or equal to 30.\n",
+    "tasks": []
   },
   {
-    "id": "oop-unit-test-coverage",
-    "label": "OOP Unit-Test Coverage",
-    "university_id": "qau",
+    "id": "oop_inheritance",
+    "label": "OOP — Inheritance & encapsulation",
+    "university_id": "comsats",
     "profile": {
-      "name": "Daniyal Iqbal",
-      "registration_no": "21L-3075",
+      "name": "Ayesha Khan",
+      "registration_no": "FA21-BCS-012",
+      "section": "BCS-3B",
+      "university": "COMSATS",
+      "instructor": "Mr. Usman Tariq",
+      "date": "2026-11-26"
+    },
+    "lab": {
+      "course_code": "CS-217",
+      "course_title": "Object Oriented Programming Lab",
+      "lab_number": "Lab 04",
+      "experiment_title": "Inheritance and Polymorphism",
+      "department": "Department of Computer Science"
+    },
+    "semester": "3",
+    "manual_text": "Lab 04 — Inheritance and Polymorphism\n\nTask 1 — Student inheritance\nCreate a base Person class and a derived Student class. Demonstrate polymorphism via a describe() method.\n\nTask 2 — Encapsulation with getters\nImplement a BankAccount with private balance, deposit and withdraw.\n",
+    "tasks": []
+  },
+  {
+    "id": "dsa_sorting",
+    "label": "DSA — MergeSort vs QuickSort",
+    "university_id": "nust",
+    "profile": {
+      "name": "Bilal Ahmed",
+      "registration_no": "21I-1101",
+      "section": "BCS-4A",
+      "university": "NUST",
+      "instructor": "Dr. Farah Naz",
+      "date": "2026-11-26"
+    },
+    "lab": {
+      "course_code": "CS-218",
+      "course_title": "Data Structures and Algorithms Lab",
+      "lab_number": "Lab 05",
+      "experiment_title": "MergeSort vs QuickSort Runtime",
+      "department": "School of Electrical Engineering and Computer Science"
+    },
+    "semester": "4",
+    "manual_text": "Lab 05 — Sorting Benchmarks\n\nTask 1 — Compare MergeSort and QuickSort\nImplement MergeSort and QuickSort and benchmark runtime for N=1000,5000,10000.\n\nTask 2 — Binary search\nImplement binary search on a sorted array and report indices for several targets.\n",
+    "tasks": []
+  },
+  {
+    "id": "os_pipes",
+    "label": "OS — Pipes / IPC (C)",
+    "university_id": "giki",
+    "profile": {
+      "name": "Omar Siddiqui",
+      "registration_no": "2021-CS-44",
+      "section": "CS-5A",
+      "university": "GIKI",
+      "instructor": "Dr. Imran Qureshi",
+      "date": "2026-11-26"
+    },
+    "lab": {
+      "course_code": "CS-342",
+      "course_title": "Operating Systems Lab",
+      "lab_number": "Lab 09",
+      "experiment_title": "Pipes and Inter-Process Communication",
+      "department": "Faculty of Computer Science and Engineering"
+    },
+    "semester": "5",
+    "manual_text": "Lab 09 — Pipes and IPC\n\nTask 1 — What is IPC / What is a pipe?\nWrite a short C program demonstrating a pipe between parent and child.\n\nTask 2 — Pipe in C: parent creates pipe, child writes, parent reads\nImplement fork + pipe IPC in C.\n\nTask 3 — fork and exec\nWrite a C program that forks and uses execvp to run ls -l.\n",
+    "tasks": []
+  },
+  {
+    "id": "ml_regression_exercises",
+    "label": "ML — Regression exercises (9 tasks)",
+    "university_id": "nust",
+    "profile": {
+      "name": "Areeba Malik",
+      "registration_no": "19F-9222",
       "section": "BIT-6A",
-      "university": "Quaid-i-Azam",
-      "instructor": "Dr. Bilal Hussain",
-      "date": "2026-04-17"
+      "university": "NUST",
+      "instructor": "Ms. Hira Sheikh",
+      "date": "2026-11-25"
     },
     "lab": {
       "course_code": "CS-212",
-      "course_title": "Object-Oriented Programming Lab",
-      "lab_number": "Lab 07",
-      "experiment_title": "Inheritance Hierarchy Unit-Test Coverage",
+      "course_title": "Machine Learning",
+      "lab_number": "Lab 06",
+      "experiment_title": "Implementation of Regression Algorithms Using Scikit-learn",
       "department": "School of Computing"
     },
-    "raw_log": "# oop_unit_tests\nNumClasses,Coverage (%),PassRate (%),Defects\n10,78.9,73.0,5\n50,81.4,95.8,31\n100,89.3,87.6,1\n200,65.7,74.1,4",
-    "answer": {
-      "cover_page": {
-        "university_id": "qau",
-        "university_raw": "Quaid-i-Azam",
-        "department": "School of Computing",
-        "course_code": "CS-212",
-        "course_title": "Object-Oriented Programming Lab",
-        "lab_number": "Lab 07",
-        "experiment_title": "Inheritance Hierarchy Unit-Test Coverage",
-        "student_name": "Daniyal Iqbal",
-        "registration_no": "21L-3075",
-        "section": "BIT-6A",
-        "instructor": "Dr. Bilal Hussain",
-        "submission_date": "2026-04-17"
-      },
-      "anomaly_check": {
-        "status": "warning",
-        "flags": [
-          "Defect count for NumClasses=50 is an extreme outlier (31) relative to peer configurations; flagged for review."
-        ]
-      },
-      "report_body": {
-        "abstract": "This OOP lab evaluated inheritance hierarchy unit-test coverage. Test coverage and pass rates were recorded for hierarchies of different sizes. Maximum coverage observed was 89.3%.",
-        "apparatus": [
-          "JUnit / pytest",
-          "Coverage.py or JaCoCo",
-          "CSV test summary"
-        ],
-        "methodology": "Built class hierarchies, executed the unit suite, and exported coverage and pass-rate metrics.",
-        "equations_latex": [
-          "\\text{Coverage}=\\frac{\\text{lines hit}}{\\text{lines total}}\\times 100"
-        ],
-        "tables": [
-          {
-            "caption": "OOP test metrics",
-            "headers": [
-              "NumClasses",
-              "Coverage (%)",
-              "PassRate (%)",
-              "Defects"
-            ],
-            "rows": [
-              [
-                "10",
-                "78.9",
-                "73.0",
-                "5"
-              ],
-              [
-                "50",
-                "81.4",
-                "95.8",
-                "31"
-              ],
-              [
-                "100",
-                "89.3",
-                "87.6",
-                "1"
-              ],
-              [
-                "200",
-                "65.7",
-                "74.1",
-                "4"
-              ]
-            ]
-          }
-        ],
-        "plot_code": "import matplotlib.pyplot as plt\nx = [10, 50, 100, 200]\nplt.figure(figsize=(6, 4))\nplt.plot(x, [78.9, 81.4, 89.3, 65.7], marker='o', label='Coverage')\nplt.plot(x, [73.0, 95.8, 87.6, 74.1], marker='o', label='PassRate')\nplt.xlabel('NumClasses')\nplt.ylabel('Percent')\nplt.title('Inheritance Hierarchy Unit-Test Coverage')\nplt.legend()\nplt.grid(True)\nplt.tight_layout()\nplt.savefig('plot.png', dpi=300)",
-        "discussion": "Coverage generally improved with more focused tests. An outlier defect spike was flagged from the raw log. Pass rate remained acceptable for the lab rubric.",
-        "conclusion": "OOP lab objectives were met; metrics are grounded in the test CSV."
-      }
-    }
-  },
-  {
-    "id": "os-scheduling",
-    "label": "OS Scheduling Lab",
-    "university_id": "riphah",
-    "profile": {
-      "name": "Maryam Raza",
-      "registration_no": "20I-8592",
-      "section": "BCS-2A",
-      "university": "Riphah International",
-      "instructor": "Mr. Usman Ali",
-      "date": "2026-09-03"
-    },
-    "lab": {
-      "course_code": "CS-350",
-      "course_title": "Operating Systems Lab",
-      "lab_number": "Lab 01",
-      "experiment_title": "CPU Scheduling: FCFS vs SJF vs Round Robin",
-      "department": "Department of Information Technology"
-    },
-    "raw_log": "# os_scheduling\nAlgorithm,AvgWaiting (ms),AvgTurnaround (ms),ContextSwitches\nFCFS,140.2,210.9,38\nSJF,141.7,229.4,30\nRoundRobin,58.8,170.7,40\nPriority,32.5,111.3,6\n# RAW_ANOMALY_HINT FCFS,...,0.1402s",
-    "answer": {
-      "cover_page": {
-        "university_id": "riphah",
-        "university_raw": "Riphah International",
-        "department": "Department of Information Technology",
-        "course_code": "CS-350",
-        "course_title": "Operating Systems Lab",
-        "lab_number": "Lab 01",
-        "experiment_title": "CPU Scheduling: FCFS vs SJF vs Round Robin",
-        "student_name": "Maryam Raza",
-        "registration_no": "20I-8592",
-        "section": "BCS-2A",
-        "instructor": "Mr. Usman Ali",
-        "submission_date": "2026-09-03"
-      },
-      "anomaly_check": {
-        "status": "warning",
-        "flags": [
-          "Entry 'FCFS' recorded as 0.1402 s while sibling rows use ms (1000x unit mismatch detected and normalized to 140.20 ms)."
-        ]
-      },
-      "report_body": {
-        "abstract": "This OS lab compared CPU scheduling via cpu scheduling: fcfs vs sjf vs round robin. Average waiting and turnaround times were collected for 4 policies.",
-        "apparatus": [
-          "Scheduling simulator",
-          "process burst CSV",
-          "Python analysis script"
-        ],
-        "methodology": "Fed identical process burst sets to each scheduler and recorded waiting/turnaround metrics.",
-        "equations_latex": [
-          "W_{avg}=\\frac{1}{n}\\sum W_i",
-          "T_{avg}=\\frac{1}{n}\\sum (C_i-A_i)"
-        ],
-        "tables": [
-          {
-            "caption": "Scheduler comparison",
-            "headers": [
-              "Algorithm",
-              "AvgWaiting (ms)",
-              "AvgTurnaround (ms)",
-              "ContextSwitches"
-            ],
-            "rows": [
-              [
-                "FCFS",
-                "140.2",
-                "210.9",
-                "38"
-              ],
-              [
-                "SJF",
-                "141.7",
-                "229.4",
-                "30"
-              ],
-              [
-                "RoundRobin",
-                "58.8",
-                "170.7",
-                "40"
-              ],
-              [
-                "Priority",
-                "32.5",
-                "111.3",
-                "6"
-              ]
-            ]
-          }
-        ],
-        "plot_code": "import matplotlib.pyplot as plt\nx = [0, 1, 2, 3]\nplt.figure(figsize=(6, 4))\nplt.plot(x, [140.2, 141.7, 58.8, 32.5], marker='o', label='AvgWaiting')\nplt.xlabel('AlgorithmIndex')\nplt.ylabel('Waiting (ms)')\nplt.title('CPU Scheduling: FCFS vs SJF vs Round Robin')\nplt.legend()\nplt.grid(True)\nplt.tight_layout()\nplt.savefig('plot.png', dpi=300)",
-        "discussion": "SJF typically reduced waiting time versus FCFS in these traces. A millisecond/second unit mismatch was normalized. Round Robin context-switch overhead was visible in the counters.",
-        "conclusion": "Scheduling results match expected OS theory for the provided workload."
-      }
-    }
+    "semester": "6",
+    "manual_text": "Lab 06\nImplementation of Regression Algorithms Using Scikit-learn\n\n1. Aim\nTo implement simple and multiple linear regression with Scikit-learn and evaluate models properly.\n\nPart A: generate and inspect the house data; look at correlations with the price; split 75% / 25% with a fixed random_state.\nPart B (simple regression): compute the slope and intercept by hand, fit Linear Regression, confirm they agree.\nPart C (multiple regression): fit all four features; reproduce the coefficients with the normal equation.\nPart D (diagnostics): plot residuals against fitted values, a residual histogram and a Q-Q plot.\nPart E (multicollinearity): add a nearly duplicate feature, compute VIFs.\nPart F (real data): fit linear regression to the diabetes data.\nPart G (regularization): compare plain linear regression, Ridge and Lasso.\n\n13. Exercises / Tasks\nPerform the following independently and include code, outputs and figures.\n1. By hand: For the points (1, 2), (2, 3), (3, 5), (4, 4), (5, 6), compute the slope, intercept, SSE and R² on paper. Check them with LinearRegression and r2_score.\n2. Other single features: Fit a simple regression of price on each of the four features separately. Tabulate the test R² and RMSE and rank the features. Does the ranking agree with the standardized effects?\n3. Split variation: Repeat the multiple regression for 30 different values of random_state in train_test_split. Report the mean and standard deviation of the test R² and RMSE, and draw a histogram. How often is the test R² above the training R²?\n4. Learning curve: Train the multiple model on 20, 40, 80, 160 and 225 training houses and plot training and test RMSE against the training-set size. At what size does the test RMSE flatten?\n5. Error metrics: Add one house with an absurd price (for example 200 million) to the test set. Recompute MAE, RMSE and R². Which metric reacts most, and why?\n6. Interaction and curve: Add the features area² and area × bedrooms to the house model. Do the test RMSE or the adjusted R² improve? Explain, remembering how the data were generated.\n7. Standardisation: Standardise the four house features and refit. Which quantities change (coefficients, intercept) and which stay the same (predictions, R²)? Then repeat with Ridge, where the choice matters.\n8. Regularisation path: For the diabetes data, fit Lasso for 30 values of α between 0.01 and 10 on standardized features and plot every coefficient against α. In which order do the features drop to zero, and does the order agree with the CV results in Part F?\n9. Heteroscedastic data: Generate data in which the noise standard deviation grows with x, fit a line, and show the funnel-shaped residual plot. Suggest two remedies (for example log-transforming y, or weighted least squares).\n\n14. Submission\nUpload your notebook.\n",
+    "tasks": []
   }
 ]
