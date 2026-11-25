@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { AuditBadge } from "@/components/ui/Marks";
 import { useToast } from "@/components/ui/Toast";
 import { api, fileUrl } from "@/lib/api";
 import type { ReportSummary } from "@/lib/types";
@@ -119,7 +118,7 @@ export default function HistoryPage() {
                       Experiment
                     </th>
                     <th scope="col" className="px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-navy">
-                      Audit
+                      Tasks
                     </th>
                     <SortHeader label="Generated" active={sort.key === "created_at"} desc={sort.desc} onClick={() => toggleSort("created_at")} />
                     <th scope="col" className="px-4 py-2.5">
@@ -143,8 +142,8 @@ export default function HistoryPage() {
                           </p>
                           <p className="text-xs text-mute">{r.course_title}</p>
                         </td>
-                        <td className="px-4 py-3 align-top">
-                          <AuditBadge status={r.anomaly_status} />
+                        <td className="px-4 py-3 align-top text-sm text-body">
+                          {r.task_count} task{r.task_count === 1 ? "" : "s"}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 align-top text-body">
                           {dateFormat.format(created)}

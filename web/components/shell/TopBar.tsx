@@ -17,7 +17,7 @@ export function TopBar() {
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-6 bg-navy px-4 text-white sm:gap-8 sm:px-6">
       <Link href="/" className="flex items-center gap-2 text-[1.0625rem] font-bold tracking-tight">
         <LogoMark />
-        LabPulse
+        EzLab
       </Link>
       <nav aria-label="Main" className="flex gap-1">
         {NAV.map((item) => {

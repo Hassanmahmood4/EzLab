@@ -26,7 +26,7 @@ const jetbrains = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "LabPulse",
+  title: "EzLab",
   description: "Offline lab report auditor and generator. Your data never leaves this computer.",
 };
 

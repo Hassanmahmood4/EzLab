@@ -37,7 +37,7 @@ export default function ProfilePage() {
             </div>
             <ul className="space-y-2 text-sm text-body">
               <li>Your profile and reports are stored in the project&apos;s <code className="font-mono text-[0.8125rem]">outputs/</code> folder.</li>
-              <li>Nothing is uploaded. LabPulse makes no internet requests.</li>
+              <li>Nothing is uploaded. EzLab makes no internet requests.</li>
               <li>Delete any report from History at any time.</li>
               <li className="text-mute">University crests are placeholders, not official artwork.</li>
             </ul>
