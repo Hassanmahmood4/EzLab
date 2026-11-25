@@ -2,7 +2,7 @@
 
 ## 1. Project Overview & Core Value Proposition
 
-**Project Name:** LabPulse (or `lab-report-copilot`)  
+**Project Name:** EzLab (or `lab-report-copilot`)  
 **One-Line Summary:** A 100% offline, lowest-resource, cross-platform (Windows + macOS) LoRA-fine-tuned **`Qwen2.5-1.5B-Instruct`** system served via **llama.cpp (GGUF `Q4_K_M`)** that audits university students' raw lab logs/CSVs/circuit photos for unit errors and anomalies, generates grounded academic analysis, and compiles submission-ready **Word (`.docx`)** and **PDF (`.pdf`)** reports with official Pakistani university cover pages.
 
 ### The Problem & Academic-Integrity Positioning
