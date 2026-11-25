@@ -1,4 +1,4 @@
-"""Local FastAPI backend for the LabPulse web UI (http://127.0.0.1:8080).
+"""Local FastAPI backend for the EzLab web UI (http://127.0.0.1:8080).
 
 Run: uvicorn src.api:app --host 127.0.0.1 --port 8080
 """
@@ -28,7 +28,7 @@ from src.presets import public_presets
 from src.renderer_pdf import find_typst
 from src.validator import ROOT, load_universities
 
-app = FastAPI(title="LabPulse", version="1.0.0")
+app = FastAPI(title="EzLab", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.environ.get(
@@ -57,17 +57,29 @@ class LabIn(BaseModel):
     department: str = Field(..., min_length=1, max_length=160)
 
 
+class TaskIn(BaseModel):
+    number: int = Field(..., ge=1)
+    title: str = Field(..., min_length=1, max_length=200)
+    prompt: str = Field("", max_length=20_000)
+    code: str = Field("", max_length=100_000)
+    output: str = Field("", max_length=100_000)
+
+
 class GenerateIn(BaseModel):
     profile: ProfileIn
     lab: LabIn
+    # Match manual_parser.MAX_TEXT_CHARS — full lab PDFs are often >20k characters.
+    manual_text: str = Field(..., min_length=20, max_length=80_000)
+    tasks: list[TaskIn] = Field(default_factory=list)
+    semester: str = Field("", max_length=40)
+    submission_date: str = Field(default_factory=lambda: date.today().isoformat())
     raw_log: str = ""
     raw_log_name: str | None = Field(default=None, max_length=200)
-    manual_text: str | None = Field(default=None, max_length=20_000)
-    submission_date: str = Field(default_factory=lambda: date.today().isoformat())
 
 
 class EditIn(BaseModel):
     cover: dict[str, str] = Field(default_factory=dict)
+    tasks: list[TaskIn] | None = None
     body: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -186,12 +198,18 @@ async def generate_report(body: GenerateIn, request: Request) -> StreamingRespon
         date=body.submission_date,
     )
     lab = LabDetails(**body.lab.model_dump())
+    task_payloads = [t.model_dump() for t in body.tasks]
 
     def worker() -> None:
         try:
             record = generate(
-                profile, lab, body.raw_log, body.profile.university_id, emit, cancel,
-                raw_log_name=body.raw_log_name,
+                profile,
+                lab,
+                body.profile.university_id,
+                emit,
+                cancel,
+                tasks=task_payloads,
+                semester=body.semester,
                 manual_text=body.manual_text,
             )
             emit("done", {"record": record})
@@ -248,7 +266,8 @@ def report(report_id: str) -> dict[str, Any]:
 def edit_report(report_id: str, body: EditIn) -> dict[str, Any]:
     _record_or_404(report_id)
     try:
-        return apply_edits(report_id, body.cover, body.body)
+        tasks = [t.model_dump() for t in body.tasks] if body.tasks is not None else None
+        return apply_edits(report_id, body.cover, tasks=tasks, body=body.body)
     except PipelineError as exc:
         raise HTTPException(422, {"code": exc.code, "message": exc.message}) from exc
 
@@ -264,23 +283,57 @@ _MEDIA = {
     "pdf": "application/pdf",
     "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "plot": "image/png",
+    "preview": "image/png",
 }
 
 
 @app.get("/reports/{report_id}/files/{kind}")
-def report_file(report_id: str, kind: Literal["pdf", "docx", "plot"], download: bool = False) -> FileResponse:
+def report_file(
+    report_id: str,
+    kind: Literal["pdf", "docx", "plot", "preview"],
+    download: bool = False,
+) -> FileResponse:
     record = _record_or_404(report_id)
     folder = storage.report_dir(report_id)
-    path: Path = folder / "work" / "plot.png" if kind == "plot" else folder / f"{report_id}.{kind}"
+    if kind == "plot":
+        path: Path = folder / "work" / "plot.png"
+    elif kind == "preview":
+        path = folder / "work" / "preview.png"
+    else:
+        path = folder / f"{report_id}.{kind}"
     if not path.exists():
         raise HTTPException(404, f"No {kind} file for this report")
     cover = record["report"]["cover_page"]
-    filename = f"{cover['course_code']}_{cover['lab_number']}_{cover['registration_no']}.{'png' if kind == 'plot' else kind}"
+    ext = "png" if kind in {"plot", "preview"} else kind
+    filename = f"{cover['course_code']}_{cover['lab_number']}_{cover['registration_no']}.{ext}"
     filename = "".join(c if c.isalnum() or c in "-_." else "_" for c in filename)
+    headers = {
+        "Cache-Control": "no-store",
+        # Allow embedding in the Next.js UI (localhost:3000 → proxy or direct).
+        "Cross-Origin-Resource-Policy": "cross-origin",
+        "X-Content-Type-Options": "nosniff",
+    }
+    if kind == "pdf" and not download:
+        # Help Chromium's PDF viewer paint inside an iframe instead of a blank pane.
+        headers["Content-Type"] = "application/pdf"
+        headers["Accept-Ranges"] = "bytes"
     return FileResponse(
         path,
         media_type=_MEDIA[kind],
         filename=filename if download else None,
         content_disposition_type="attachment" if download else "inline",
-        headers={"Cache-Control": "no-store"},
+        headers=headers,
     )
+
+
+@app.get("/reports/{report_id}/figures/{filename}")
+def report_figure(report_id: str, filename: str) -> FileResponse:
+    """Serve a per-task PNG produced during report rendering."""
+    _record_or_404(report_id)
+    safe = Path(filename).name
+    if not safe.endswith(".png") or ".." in safe or "/" in safe or "\\" in safe:
+        raise HTTPException(400, "Invalid figure name")
+    path = storage.report_dir(report_id) / "work" / safe
+    if not path.exists():
+        raise HTTPException(404, "Figure not found")
+    return FileResponse(path, media_type="image/png", headers={"Cache-Control": "no-store"})
