@@ -77,6 +77,7 @@ def list_records() -> list[dict[str, Any]]:
         except (OSError, json.JSONDecodeError):
             continue
         cover = record["report"]["cover_page"]
+        tasks = record["report"].get("tasks") or []
         summaries.append(
             {
                 "id": record["id"],
@@ -86,7 +87,7 @@ def list_records() -> list[dict[str, Any]]:
                 "course_title": cover["course_title"],
                 "lab_number": cover["lab_number"],
                 "experiment_title": cover["experiment_title"],
-                "anomaly_status": record["report"]["anomaly_check"]["status"],
+                "task_count": len(tasks),
                 "files": record.get("files", {}),
             }
         )
