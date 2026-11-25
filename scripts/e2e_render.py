@@ -1,55 +1,62 @@
 #!/usr/bin/env python3
-"""End-to-end: load one test.jsonl sample → validate → plot → docx + pdf."""
+"""Smoke-test task report generation (stub) → .docx / .pdf."""
 
 from __future__ import annotations
 
 import json
+import os
 import sys
+import threading
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+os.environ.setdefault("LABPULSE_STUB", "1")
 
-from src.renderer_docx import ensure_docx_template, render_docx
-from src.renderer_pdf import render_pdf
-from src.validator import validate_and_prepare
-
-
-def extract_raw_log(user_content: str) -> str:
-    marker = "RAW DATA LOG:\n"
-    idx = user_content.find(marker)
-    if idx < 0:
-        return user_content
-    return user_content[idx + len(marker) :]
+from src.inference import LabDetails, StudentProfile  # noqa: E402
+from src.pipeline import generate  # noqa: E402
 
 
-def main() -> None:
-    test_path = ROOT / "data" / "test.jsonl"
-    out_dir = ROOT / "outputs" / "e2e"
-    out_dir.mkdir(parents=True, exist_ok=True)
+def main() -> int:
+    profile = StudentProfile(
+        name="Hassan Ali",
+        registration_no="21I-1234",
+        section="BCS-2A",
+        university="NUST",
+        instructor="Dr. Ayesha Khan",
+        date="2026-11-25",
+    )
+    lab = LabDetails(
+        course_code="CS-100",
+        course_title="Programming Fundamentals Lab",
+        lab_number="Lab 01",
+        experiment_title="Input, Loops and Functions",
+        department="Department of Computer Science",
+    )
+    manual = (
+        "Lab 01: Input, Loops and Functions\n\n"
+        "Task 1 — Hello and sum\n"
+        "Write a program that reads two integers and prints their sum.\n\n"
+        "Task 2 — Factorial\n"
+        "Write a function that returns n! and print factorial(5).\n"
+    )
 
-    line = test_path.read_text(encoding="utf-8").splitlines()[0]
-    example = json.loads(line)
-    user = example["messages"][1]["content"]
-    assistant = example["messages"][2]["content"]
-    raw_log = extract_raw_log(user)
+    def emit(event: str, payload: dict) -> None:
+        if event == "stage":
+            print("stage", payload)
 
-    ensure_docx_template()
-    result = validate_and_prepare(assistant, raw_log, work_dir=out_dir, run_plot=True)
-
-    print(f"university: {result.university['full_name']}")
-    print(f"grounding: {result.grounding.grounded}/{result.grounding.total_numbers} ({result.grounding.accuracy:.1%})")
-    if result.plot_error:
-        raise SystemExit(f"plot failed: {result.plot_error}")
-    print(f"plot: {result.plot_path}")
-
-    docx_path = render_docx(result, out_dir / "report.docx")
-    pdf_path = render_pdf(result, out_dir / "report.pdf", work_dir=out_dir)
-
-    print(f"docx: {docx_path} ({docx_path.stat().st_size} bytes)")
-    print(f"pdf:  {pdf_path} ({pdf_path.stat().st_size} bytes)")
-    print("e2e_render: OK")
+    record = generate(
+        profile,
+        lab,
+        "nust",
+        emit,
+        threading.Event(),
+        manual_text=manual,
+        semester="2",
+    )
+    print(json.dumps({"id": record["id"], "files": record["files"], "tasks": len(record["report"]["tasks"])}, indent=2))
+    return 0 if record["files"].get("docx") else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
