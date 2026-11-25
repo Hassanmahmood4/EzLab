@@ -5,10 +5,10 @@ import { ApiRequestError, api, streamGenerate } from "./api";
 import { useSystem } from "./system-context";
 import type {
   ApiError,
-  EditableBodyField,
   EditableCoverField,
   GenerationStage,
   LabDetails,
+  LabTask,
   Preset,
   ReportEdits,
   ReportRecord,
@@ -16,16 +16,14 @@ import type {
 } from "./types";
 
 export const STAGES: { id: GenerationStage; label: string }[] = [
-  { id: "reading", label: "Reading lab" },
-  { id: "writing", label: "Writing report" },
-  { id: "validating", label: "Validating" },
+  { id: "reading", label: "Reading tasks" },
+  { id: "writing", label: "Building report" },
+  { id: "validating", label: "Checking" },
   { id: "rendering", label: "Rendering files" },
 ];
 
-const DATA_EXTENSIONS = [".csv", ".log", ".txt", ".tsv"];
 const MANUAL_EXTENSIONS = [".txt", ".md", ".pdf", ".docx"];
-const MAX_DATA_BYTES = 1024 * 1024;
-const LAB_STORAGE_KEY = "labpulse.lab";
+const LAB_STORAGE_KEY = "ezlab.lab";
 
 export const EMPTY_LAB: LabDetails = {
   course_code: "",
@@ -47,12 +45,6 @@ export const EMPTY_PROFILE: StudentProfile = {
 
 export type Phase = "idle" | "generating" | "ready" | "failed";
 
-export interface DataFile {
-  name: string;
-  text: string;
-  size: number;
-}
-
 export interface Progress {
   stage: GenerationStage;
   startedAt: number;
@@ -61,9 +53,12 @@ export interface Progress {
   retried: boolean;
 }
 
-export type FieldErrors = Partial<Record<keyof LabDetails | keyof StudentProfile | "data" | "manual", string>>;
+export type FieldErrors = Partial<
+  Record<keyof LabDetails | keyof StudentProfile | "manual" | "tasks", string>
+>;
 
-const hasExtension = (name: string, allowed: string[]) => allowed.some((ext) => name.toLowerCase().endsWith(ext));
+const hasExtension = (name: string, allowed: string[]) =>
+  allowed.some((ext) => name.toLowerCase().endsWith(ext));
 const today = () => new Date().toISOString().slice(0, 10);
 
 export function validateProfile(profile: StudentProfile): FieldErrors {
@@ -84,15 +79,23 @@ function validateLab(lab: LabDetails): FieldErrors {
   return errors;
 }
 
+function validateManual(manual: { name: string; text: string } | null): FieldErrors {
+  if (!manual?.text?.trim() || manual.text.trim().length < 20) {
+    return { manual: "Upload a lab manual (PDF, Word, or text)." };
+  }
+  return {};
+}
+
 export function useWorkspace() {
   const { profile: savedProfile, saveProfile, setLastStats, refreshHealth, connection } = useSystem();
   const [presets, setPresets] = useState<Preset[]>([]);
 
   const [profileDraft, setProfileDraft] = useState<StudentProfile>(EMPTY_PROFILE);
   const [lab, setLab] = useState<LabDetails>(EMPTY_LAB);
+  const [semester, setSemester] = useState("");
   const [manual, setManual] = useState<{ name: string; text: string } | null>(null);
   const [manualLoading, setManualLoading] = useState(false);
-  const [data, setData] = useState<DataFile | null>(null);
+  const [tasks, setTasks] = useState<LabTask[]>([]);
   const [errors, setErrors] = useState<FieldErrors>({});
 
   const [phase, setPhase] = useState<Phase>("idle");
@@ -100,13 +103,11 @@ export function useWorkspace() {
   const [record, setRecord] = useState<ReportRecord | null>(null);
   const [failure, setFailure] = useState<ApiError | null>(null);
 
-  const [edits, setEdits] = useState<ReportEdits>({ cover: {}, body: {} });
+  const [edits, setEdits] = useState<ReportEdits>({ cover: {} });
   const [updating, setUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
-  const [hoveredLine, setHoveredLine] = useState<number | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
-  // A sample's student fills the form for a trial run but is never saved as the real profile.
   const draftIsSampleRef = useRef(false);
 
   const presetsLoaded = presets.length > 0;
@@ -115,13 +116,12 @@ export function useWorkspace() {
     api.presets().then(setPresets).catch(() => undefined);
   }, [connection, presetsLoaded]);
 
-  // Restore last week's course details so only the lab number and title change.
   useEffect(() => {
     try {
       const stored = localStorage.getItem(LAB_STORAGE_KEY);
       if (stored) setLab({ ...EMPTY_LAB, ...JSON.parse(stored) });
     } catch {
-      /* ignore corrupt storage */
+      /* ignore */
     }
   }, []);
 
@@ -136,26 +136,21 @@ export function useWorkspace() {
     setErrors((current) => ({ ...current, [field]: undefined }));
   }, []);
 
-  const loadData = useCallback(async (file: File) => {
-    if (!hasExtension(file.name, DATA_EXTENSIONS)) {
-      setErrors((e) => ({ ...e, data: "Use a .csv, .log, .tsv or .txt file." }));
-      return;
-    }
-    if (file.size > MAX_DATA_BYTES) {
-      setErrors((e) => ({ ...e, data: "This file is over 1 MB. Keep only the readings for this lab." }));
-      return;
-    }
-    const text = await file.text();
-    if (!text.trim()) {
-      setErrors((e) => ({ ...e, data: "This file is empty." }));
-      return;
-    }
-    if ((text.match(/-?\d+(?:\.\d+)?/g) ?? []).length < 3) {
-      setErrors((e) => ({ ...e, data: "No numeric readings found in this file." }));
-      return;
-    }
-    setData({ name: file.name, text, size: file.size });
-    setErrors((e) => ({ ...e, data: undefined }));
+  const updateTask = useCallback((index: number, patch: Partial<LabTask>) => {
+    setTasks((current) => current.map((task, i) => (i === index ? { ...task, ...patch } : task)));
+    setErrors((e) => ({ ...e, tasks: undefined }));
+  }, []);
+
+  const addTask = useCallback(() => {
+    setTasks((current) => {
+      const number = (current[current.length - 1]?.number ?? 0) + 1;
+      return [...current, { number, title: `Task ${number}`, prompt: "", code: "", output: "" }];
+    });
+    setErrors((e) => ({ ...e, tasks: undefined }));
+  }, []);
+
+  const removeTask = useCallback((index: number) => {
+    setTasks((current) => current.filter((_, i) => i !== index));
   }, []);
 
   const loadManual = useCallback(async (file: File) => {
@@ -172,21 +167,43 @@ export function useWorkspace() {
         for (const key of Object.keys(parsed.fields) as (keyof LabDetails)[]) {
           if (parsed.fields[key]) next[key] = parsed.fields[key];
         }
+        // Always take a fresh title from the new manual when the parser found one;
+        // clears stale titles left over from a previous sample/preset.
+        if (parsed.fields.experiment_title) {
+          next.experiment_title = parsed.fields.experiment_title;
+        }
         return next;
       });
-      setErrors((e) => ({ ...e, manual: undefined }));
+      setTasks(
+        (parsed.tasks ?? []).map((t) => ({
+          number: t.number,
+          title: t.title,
+          prompt: t.prompt,
+          code: t.code || "",
+          output: t.output || "",
+        })),
+      );
+      setErrors((e) => ({ ...e, manual: undefined, tasks: undefined }));
     } catch (error) {
-      setErrors((e) => ({ ...e, manual: error instanceof Error ? error.message : "Couldn't read this manual." }));
+      setErrors((e) => ({
+        ...e,
+        manual: error instanceof Error ? error.message : "Couldn't read this manual.",
+      }));
     } finally {
       setManualLoading(false);
     }
   }, []);
 
-    const loadPreset = useCallback(
+  const loadPreset = useCallback(
     (preset: Preset) => {
       setLab(preset.lab);
-      setData(null);
-      setManual(null);
+      setSemester(preset.semester || "");
+      setManual(
+        preset.manual_text
+          ? { name: `${preset.id}.txt`, text: preset.manual_text }
+          : null,
+      );
+      setTasks((preset.tasks ?? []).map((t) => ({ ...t, code: t.code || "", output: t.output || "" })));
       setErrors({});
       if (!savedProfile) {
         draftIsSampleRef.current = true;
@@ -209,6 +226,7 @@ export function useWorkspace() {
     const nextErrors: FieldErrors = {
       ...(savedProfile ? {} : validateProfile(profileDraft)),
       ...validateLab(lab),
+      ...validateManual(manual),
     };
     if (Object.values(nextErrors).some(Boolean)) {
       setErrors(nextErrors);
@@ -219,7 +237,10 @@ export function useWorkspace() {
       try {
         await saveProfile(profileDraft);
       } catch (error) {
-        setFailure({ code: "profile_save", message: error instanceof Error ? error.message : "Couldn't save your profile." });
+        setFailure({
+          code: "profile_save",
+          message: error instanceof Error ? error.message : "Couldn't save your profile.",
+        });
         setPhase("failed");
         return;
       }
@@ -232,23 +253,36 @@ export function useWorkspace() {
     setPhase("generating");
     setFailure(null);
     setRecord(null);
-    setEdits({ cover: {}, body: {} });
-    setProgress({ stage: "reading", startedAt, stageStarts: { reading: startedAt }, tokens: 0, retried: false });
+    setEdits({ cover: {} });
+    setProgress({
+      stage: "reading",
+      startedAt,
+      stageStarts: { reading: startedAt },
+      tokens: 0,
+      retried: false,
+    });
 
     await streamGenerate(
       {
         profile,
         lab,
-        raw_log: data?.text ?? "",
-        raw_log_name: data?.name,
-        manual_text: manual?.text,
+        manual_text: manual!.text,
+        tasks,
+        semester,
         submission_date: today(),
       },
       (event) => {
         switch (event.type) {
           case "stage":
             setProgress((p) =>
-              p && { ...p, stage: event.stage, stageStarts: { ...p.stageStarts, [event.stage]: p.stageStarts[event.stage] ?? performance.now() } },
+              p && {
+                ...p,
+                stage: event.stage,
+                stageStarts: {
+                  ...p.stageStarts,
+                  [event.stage]: p.stageStarts[event.stage] ?? performance.now(),
+                },
+              },
             );
             break;
           case "tokens":
@@ -281,7 +315,7 @@ export function useWorkspace() {
     );
     abortRef.current = null;
     refreshHealth();
-  }, [savedProfile, profileDraft, lab, data, manual, saveProfile, setLastStats, refreshHealth]);
+  }, [savedProfile, profileDraft, lab, manual, tasks, semester, saveProfile, setLastStats, refreshHealth]);
 
   const cancel = useCallback(() => abortRef.current?.abort(), []);
 
@@ -290,17 +324,14 @@ export function useWorkspace() {
       const loaded = await api.report(id);
       setRecord(loaded);
       setLab(loaded.inputs.lab);
-      if (loaded.raw_log) {
-        setData({ name: loaded.inputs.raw_log_name || "Saved measurements", text: loaded.raw_log, size: loaded.raw_log.length });
-      } else {
-        setData(null);
-      }
-      setEdits({ cover: {}, body: {} });
+      setSemester(loaded.inputs.semester || "");
+      setTasks(loaded.report.tasks.map((t) => ({ ...t })));
+      setEdits({ cover: {} });
       setPhase("ready");
       setFailure(null);
-    } catch (error) {
+    } catch {
       setFailure({
-        code: error instanceof ApiRequestError ? error.code : "not_found",
+        code: "not_found",
         message: "That report couldn't be opened. It may have been deleted.",
       });
       setPhase("failed");
@@ -319,20 +350,7 @@ export function useWorkspace() {
     [record],
   );
 
-  const editBody = useCallback(
-    (field: EditableBodyField, value: string | string[]) => {
-      setEdits((current) => {
-        const body = { ...current.body };
-        const original = record?.report.report_body[field];
-        if (JSON.stringify(original) === JSON.stringify(value)) delete body[field];
-        else body[field] = value;
-        return { ...current, body };
-      });
-    },
-    [record],
-  );
-
-  const isStale = Object.keys(edits.cover).length + Object.keys(edits.body).length > 0;
+  const isStale = Object.keys(edits.cover).length > 0;
 
   const applyEdits = useCallback(async () => {
     if (!record || !isStale) return false;
@@ -341,7 +359,7 @@ export function useWorkspace() {
     try {
       const updated = await api.editReport(record.id, edits);
       setRecord(updated);
-      setEdits({ cover: {}, body: {} });
+      setEdits({ cover: {} });
       return true;
     } catch (error) {
       setUpdateError(error instanceof Error ? error.message : "Couldn't update the files.");
@@ -352,7 +370,7 @@ export function useWorkspace() {
   }, [record, edits, isStale]);
 
   const discardEdits = useCallback(() => {
-    setEdits({ cover: {}, body: {} });
+    setEdits({ cover: {} });
     setUpdateError(null);
   }, []);
 
@@ -361,20 +379,18 @@ export function useWorkspace() {
     setPhase("idle");
     setProgress(null);
     setFailure(null);
-    setData(null);
     setManual(null);
-    setEdits({ cover: {}, body: {} });
+    setTasks([]);
+    setEdits({ cover: {} });
     setLab((current) => ({ ...current, lab_number: "", experiment_title: "" }));
     window.history.replaceState(null, "", "/");
   }, []);
 
-  /** The report as the student currently sees it, with unsaved edits applied. */
   const viewReport = useMemo(() => {
     if (!record) return null;
     return {
       ...record.report,
       cover_page: { ...record.report.cover_page, ...edits.cover },
-      report_body: { ...record.report.report_body, ...edits.body } as ReportRecord["report"]["report_body"],
     };
   }, [record, edits]);
 
@@ -384,13 +400,16 @@ export function useWorkspace() {
     updateProfileDraft,
     lab,
     updateLab,
+    semester,
+    setSemester,
     manual,
     manualLoading,
     loadManual,
     clearManual: () => setManual(null),
-    data,
-    loadData,
-    clearData: () => setData(null),
+    tasks,
+    updateTask,
+    addTask,
+    removeTask,
     loadPreset,
     errors,
     phase,
@@ -404,14 +423,11 @@ export function useWorkspace() {
     startNew,
     edits,
     editCover,
-    editBody,
     isStale,
     applyEdits,
     discardEdits,
     updating,
     updateError,
-    hoveredLine,
-    setHoveredLine,
   };
 }
 
