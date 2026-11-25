@@ -1,5 +1,5 @@
 ---
-name: LabPulse
+name: EzLab
 description: Offline lab report auditor that lays a student's own data out as a practical-journal page.
 colors:
   navy: "#22305e"
@@ -194,13 +194,13 @@ components:
     height: "{spacing.footer}"
 ---
 
-# Design System: LabPulse
+# Design System: EzLab
 
 ## Overview
 
 **Creative North Star: "The Practical Journal"**
 
-LabPulse reads like the practical journal a Pakistani student has kept since FSc: a ballpoint-navy cover and ruling, white working sheets laid on a cool grey desk, and a review that runs in journal order (Procedure, Observations, Graph, Calculations, Result). The auditor writes in graphite pencil beneath the exact row it concerns; green ink appears only where a value has been traced back to the student's own file. Nothing in the interface is decorative. Every colour, rule and mark either structures the page or tells the student where a number came from.
+EzLab reads like the practical journal a Pakistani student has kept since FSc: a ballpoint-navy cover and ruling, white working sheets laid on a cool grey desk, and a review that runs in journal order (Procedure, Observations, Graph, Calculations, Result). The auditor writes in graphite pencil beneath the exact row it concerns; green ink appears only where a value has been traced back to the student's own file. Nothing in the interface is decorative. Every colour, rule and mark either structures the page or tells the student where a number came from.
 
 Density is that of a working tool used weekly, not a showpiece: three panes at desktop width, compact 13–15px text, tabular figures everywhere so columns of readings align. The surface is flat colour on light paper, with no texture, no gradients and no handwriting fonts; the journal metaphor lives in structure (ruled section heads, the Expt. No./Date box, pencil notes, the millimetre grid behind the plot), never in skeuomorphic imitation. Light theme only. Fully offline: both typefaces are bundled locally and no font, script or image is fetched from a CDN.
 
@@ -335,7 +335,7 @@ Confident and plain: solid navy for the one action that matters, outlined navy f
 - **Prose fields:** the journal's editable text reads as plain report prose until hover (hairline border appears) or focus (navy border and ring). An edited field keeps a navy-tint wash with a 35% navy border, and the section head reads "Edited · not in files yet".
 
 ### Navigation
-- **Style:** a 56px navy bar with the LabPulse wordmark (bold, 17px) and a stroked logo mark, then Workspace / History / Profile as 14px medium links.
+- **Style:** a 56px navy bar with the EzLab wordmark (bold, 17px) and a stroked logo mark, then Workspace / History / Profile as 14px medium links.
 - **States:** inactive links in navy-mist; hover fills navy-deep with white text; the current page fills navy-soft with white text and carries aria-current.
 - **Local status:** right-aligned pill with a hairline white border reading "Offline · running on this laptop", linking to the System section of Profile. Hidden below md.
 - **Mobile:** nav stays inline with reduced padding; the workspace below switches to tabs.
