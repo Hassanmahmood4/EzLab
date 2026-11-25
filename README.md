@@ -1,50 +1,57 @@
-# LabPulse
+# EzLab
 
-Offline lab-to-report & anomaly copilot for Pakistani university STEM/CS labs.
+Offline CS lab-report copilot for Pakistani universities.
 
-**Windows + macOS**, lowest local footprint: **llama.cpp** + fine-tuned **`labpulse-1.5b-q4_k_m.gguf`** (~1–2 GB RAM). Train LoRA on **Google Colab**, run one GGUF locally — no Ollama, no MLX, **no Base/Lab toggle**.
+Fine-tuned **Qwen2.5-Coder-1.5B** → GGUF **Q4_K_M**, served with **llama.cpp** on Windows + macOS (~1–2 GB RAM). Parses a lab manual into tasks, writes code + output, exports **Word** and **PDF** with campus cover pages — **100% offline**.
 
-Audits raw CSV/logs for unit errors, then exports **Word (`.docx`)** and **PDF (`.pdf`)** with campus cover pages — 100% offline. Training data is **CS-focused** (PF, OOP, DSA, OS, DB, Networks, SE, etc.) — not EE/mechanical labs.
-
-## Why this stack
-
-| Option | Local cost | Notes |
-|--------|------------|--------|
-| **llama.cpp** (chosen) | Lowest | Direct GGUF, CPU/Metal/CUDA, no extra server |
-| Ollama | Higher | Convenient wrapper around llama.cpp + daemon |
-| MLX | Mac-only | Not for Windows |
-
-**App model:** fine-tuned `Qwen2.5-1.5B` only. Base-vs-lab numbers live in the benchmark table (from Colab / `eval.py`), not in the UI.
+**Model (public):** [HassanM44/ezlab-1.5b-q4_k_m](https://huggingface.co/HassanM44/ezlab-1.5b-q4_k_m)
 
 ## Quick start
 
 ```bash
-make setup
-# Place Colab-exported GGUF at models/labpulse-1.5b-q4_k_m.gguf
-make models-check
-make data
-make eval                 # optional write-up metrics
-make demo                 # FastAPI :8080 + Next.js :3000
+# Python deps
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# Download GGUF
+hf download HassanM44/ezlab-1.5b-q4_k_m labpulse-1.5b-q4_k_m.gguf --local-dir ./models
+
+# Typst (PDF)
+# macOS: brew install typst   OR place binary at bin/typst
+
+# API + UI
+make demo
+# → FastAPI http://127.0.0.1:8080
+# → Next.js  http://localhost:3000
 ```
 
-Training (heavy): `notebooks/train_lora_colab.ipynb` on Colab GPU.
+```bash
+make prod-suite   # multi-subject smoke test (docx/pdf/templates)
+```
 
-## Requirements
+## Training
 
-- Windows 10/11 or macOS
-- Python 3.11+
-- ~2 GB free RAM for the 1.5B Q4 model (8 GB machine is fine)
-- Typst CLI for PDF export ([releases](https://github.com/typst/typst/releases))
+| Notebook | Where |
+|----------|--------|
+| `notebooks/train_lora_kaggle.ipynb` | **Preferred** — Unsloth LoRA → GGUF on Kaggle |
+| `notebooks/train_lora_colab.ipynb` | Colab (GPU limits) |
 
-## Benchmark
+Dataset: `data/train.jsonl` (~3200), `valid.jsonl` / `test.jsonl` (~250 each). Regenerate with `python data/generate_dataset.py`.
 
-| Model | JSON Validity % | Grounding Acc % | Anomaly Recall % | Alias F1 | Dual Export % | Peak RAM (GB) | tok/s |
-|-------|-----------------|-----------------|------------------|----------|---------------|---------------|-------|
-| Base 1.5B Q4 (eval only) | — | — | — | — | — | — | — |
-| labpulse 1.5B Q4 (**app**) | — | — | — | — | — | — | — |
+## Stack
 
-*Filled after `make eval` / Colab.*
+- **Inference:** `llama-cpp-python` loads `models/labpulse-1.5b-q4_k_m.gguf`
+- **Backend:** FastAPI (`src/api.py`) — task pipeline, curated templates, Python exec polish
+- **Frontend:** Next.js (`web/`)
+- **Export:** `docxtpl` → `.docx`, Typst → `.pdf` + cover `preview.png`
+
+## Hackathon showcase draft
+
+Filled submission forms (copy into a fork of `junaiddshaukat/finetune-anywhere`):
+
+- `hackathon/showcase-ezlab/model.yaml`
+- `hackathon/showcase-ezlab/README.md`
 
 ## License
 
-Hackathon / research prototype. University crest PNGs in `assets/logos/` are placeholders — replace with official artwork before public demos where required.
+Apache-2.0 model weights (Qwen lineage). University crest PNGs in `assets/logos/` — replace with official artwork for public production if required.
