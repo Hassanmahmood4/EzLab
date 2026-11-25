@@ -1,4 +1,4 @@
-.PHONY: setup logos data eval demo clean models-check render-test
+.PHONY: setup logos data eval demo clean models-check render-test prod-suite
 
 PYTHON ?= python3
 PIP ?= pip3
@@ -29,6 +29,9 @@ eval:
 
 render-test:
 	$(PYTHON) scripts/e2e_render.py
+
+prod-suite:
+	GGML_METAL=0 LABPULSE_N_GPU_LAYERS=0 $(PYTHON) scripts/prod_ready_suite.py
 
 demo:
 	@echo "Start UI:   cd web && npm run dev   # http://127.0.0.1:3000"
