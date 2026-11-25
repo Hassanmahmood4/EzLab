@@ -1,22 +1,15 @@
-"""Strict Pydantic schema for LabPulse lab-report JSON output."""
+"""Strict Pydantic schema for EzLab task / code / output lab reports."""
 
 from __future__ import annotations
 
-from enum import Enum
-from typing import Literal
+import json
 
 from pydantic import BaseModel, Field, field_validator
 
 
-class AnomalyStatus(str, Enum):
-    ok = "ok"
-    warning = "warning"
-    error = "error"
-
-
 class CoverPage(BaseModel):
-    university_id: str = Field(..., min_length=2, description="Canonical slug from assets/universities.json")
-    university_raw: str = Field(..., min_length=1, description="Noisy campus shorthand from the student input")
+    university_id: str = Field(..., min_length=2)
+    university_raw: str = Field(..., min_length=1)
     department: str
     course_code: str
     course_title: str
@@ -24,9 +17,10 @@ class CoverPage(BaseModel):
     experiment_title: str
     student_name: str
     registration_no: str
-    section: str
-    instructor: str
+    section: str = ""
+    instructor: str = ""
     submission_date: str = Field(..., description="ISO date YYYY-MM-DD")
+    semester: str = ""
 
     @field_validator("submission_date")
     @classmethod
@@ -37,63 +31,78 @@ class CoverPage(BaseModel):
         return value
 
 
-class AnomalyCheck(BaseModel):
-    status: AnomalyStatus
-    flags: list[str] = Field(default_factory=list)
-
-
-class ReportTable(BaseModel):
-    caption: str
-    headers: list[str] = Field(..., min_length=1)
-    rows: list[list[str]] = Field(..., min_length=1)
-
-    @field_validator("rows")
-    @classmethod
-    def _row_width(cls, rows: list[list[str]], info) -> list[list[str]]:
-        headers = info.data.get("headers") or []
-        width = len(headers)
-        for i, row in enumerate(rows):
-            if len(row) != width:
-                raise ValueError(f"row {i} has {len(row)} cells, expected {width}")
-        return rows
-
-
-class ReportBody(BaseModel):
-    abstract: str = Field(..., min_length=40)
-    apparatus: list[str] = Field(..., min_length=1)
-    methodology: str = Field(..., min_length=40)
-    equations_latex: list[str] = Field(default_factory=list)
-    tables: list[ReportTable] = Field(..., min_length=1)
-    plot_code: str = Field(..., min_length=20, description="matplotlib code that saves plot.png")
-    discussion: str = Field(..., min_length=40)
-    conclusion: str = Field(..., min_length=20)
-
-    @field_validator("plot_code")
-    @classmethod
-    def _saves_plot(cls, value: str) -> str:
-        if "savefig" not in value:
-            raise ValueError("plot_code must call savefig('plot.png', ...)")
-        return value
+class LabTask(BaseModel):
+    number: int = Field(..., ge=1)
+    title: str = Field(..., min_length=1)
+    prompt: str = ""
+    code: str = Field(..., min_length=1)
+    output: str = ""
+    figures: list[str] = Field(default_factory=list, description="PNG filenames next to the report")
 
 
 class LabReportSchema(BaseModel):
-    """Canonical model output for every LabPulse generation."""
+    """Canonical report: cover page + one entry per manual task."""
 
     cover_page: CoverPage
-    anomaly_check: AnomalyCheck
-    report_body: ReportBody
+    tasks: list[LabTask] = Field(..., min_length=1)
 
 
 SYSTEM_PROMPT = (
-    "You are an offline university lab report generator. "
-    "Write a complete submission-ready lab report from the lab manual and student details. "
-    "If a raw experimental log is provided, ground every table number in it and audit unit mismatches. "
-    "If no log is provided, invent typical, internally consistent measurements for this experiment. "
-    "Output strictly valid JSON matching the required schema. JSON only."
+    "You are an offline university CS lab assistant. "
+    "For each lab-manual task, write a complete student solution as JSON only: "
+    '{"code": "<full source code>", "output": "<realistic terminal output>"}. '
+    "Prefer Python unless the task requires another language. "
+    "Code must be runnable in spirit and match the task. "
+    "When the task asks for a plot/figure/histogram/pairplot, use matplotlib/seaborn and "
+    "always plt.savefig('plot.png', dpi=150, bbox_inches='tight') so the graph can be "
+    "embedded under Visualization Output in the report (do not rely on plt.show alone). "
+    "Output should look like real console output for that code. "
+    "No markdown fences, no commentary outside JSON."
 )
+
+
+def _coerce_report_dict(data: dict) -> dict:
+    out = dict(data)
+    cover = out.get("cover_page")
+    if isinstance(cover, dict):
+        cover = dict(cover)
+        lab_no = str(cover.get("lab_number", "")).strip()
+        if lab_no and not lab_no.lower().startswith("lab"):
+            cover["lab_number"] = (
+                f"Lab {lab_no.zfill(2)}" if lab_no.isdigit() else f"Lab {lab_no}"
+            )
+        out["cover_page"] = cover
+
+    tasks = out.get("tasks")
+    if isinstance(tasks, dict):
+        tasks = [tasks]
+    if isinstance(tasks, list):
+        fixed: list[dict] = []
+        for i, task in enumerate(tasks, start=1):
+            if not isinstance(task, dict):
+                continue
+            t = dict(task)
+            t["number"] = int(t.get("number") or i)
+            t["title"] = str(t.get("title") or f"Task {t['number']}").strip() or f"Task {t['number']}"
+            t["prompt"] = str(t.get("prompt") or "")
+            t["code"] = str(t.get("code") or "")
+            t["output"] = str(t.get("output") or "")
+            figs = t.get("figures") or []
+            if isinstance(figs, str):
+                figs = [figs]
+            t["figures"] = [str(f) for f in figs if str(f).strip()]
+            if not t["code"].strip():
+                continue
+            fixed.append(t)
+        out["tasks"] = fixed
+    return out
 
 
 def validate_report(payload: dict | str) -> LabReportSchema:
     if isinstance(payload, str):
-        return LabReportSchema.model_validate_json(payload)
-    return LabReportSchema.model_validate(payload)
+        data = json.loads(payload)
+    else:
+        data = payload
+    if not isinstance(data, dict):
+        raise ValueError("Report payload must be a JSON object")
+    return LabReportSchema.model_validate(_coerce_report_dict(data))
