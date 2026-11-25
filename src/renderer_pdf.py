@@ -1,4 +1,4 @@
-"""Render LabPulse reports to PDF via the Typst CLI."""
+"""Render EzLab reports to PDF via the Typst CLI."""
 
 from __future__ import annotations
 
@@ -50,12 +50,15 @@ def render_pdf(
     shutil.copy2(logo_src, logo_dst)
     resolved["university_logo_path"] = "university_logo.png"
 
-    if resolved.get("plot_path"):
-        plot_src = Path(resolved["plot_path"])
-        plot_dst = work / "plot.png"
-        if plot_src.resolve() != plot_dst.resolve():
-            shutil.copy2(plot_src, plot_dst)
-        resolved["plot_path"] = "plot.png"
+    # Task figures are already written into work/ by validate_and_prepare.
+    # Keep a convenience plot.png alias for the first figure (API download).
+    if result.figure_files:
+        first = work / result.figure_files[0]
+        if first.exists():
+            alias = work / "plot.png"
+            if first.resolve() != alias.resolve():
+                shutil.copy2(first, alias)
+            resolved["plot_path"] = "plot.png"
 
     json_path = work / "resolved_report.json"
     json_path.write_text(json.dumps(resolved, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -80,4 +83,31 @@ def render_pdf(
         )
     if not output_path.exists():
         raise FileNotFoundError(f"Typst reported success but missing {output_path}")
+
+    # Cover-page PNG for the in-app preview (PDF iframes often paint blank).
+    preview_path = work / "preview.png"
+    preview_cmd = [
+        typst,
+        "compile",
+        "--format",
+        "png",
+        "--pages",
+        "1",
+        "--ppi",
+        "144",
+        str(local_template),
+        str(preview_path.resolve()),
+    ]
+    preview_proc = subprocess.run(
+        preview_cmd,
+        cwd=str(work),
+        capture_output=True,
+        text=True,
+        env={**os.environ},
+        check=False,
+    )
+    if preview_proc.returncode != 0 or not preview_path.exists():
+        # Non-fatal: PDF download still works; UI falls back to object/iframe.
+        preview_path.unlink(missing_ok=True)
+
     return output_path
