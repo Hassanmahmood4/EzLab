@@ -1,30 +1,67 @@
-# LabPulse Colab training
+# EzLab training notebooks
 
-## `train_lora_colab.ipynb`
+Train a **new** LoRA so the model emits per-task solutions:
 
-Runs on **Google Colab (T4 GPU)**:
-
-1. Install Unsloth / PEFT  
-2. Load `data/train.jsonl` + `valid.jsonl`  
-3. LoRA fine-tune `Qwen/Qwen2.5-1.5B-Instruct`  
-4. Merge adapters → HF weights  
-5. Convert → **`labpulse-1.5b-q4_k_m.gguf`** (Q4_K_M)  
-6. Download the GGUF to your laptop  
-
-### Local placement after download
-
-```text
-Labpulse/models/labpulse-1.5b-q4_k_m.gguf
+```json
+{"code": "...", "output": "..."}
 ```
 
-That single file is what the app loads (no Lab OFF/ON toggle).
+(not the old full-report / tables schema).
 
-### How to open
+---
 
-1. Go to [colab.research.google.com](https://colab.research.google.com)  
-2. File → Upload notebook → select `notebooks/train_lora_colab.ipynb`  
-3. Runtime → Change runtime type → **T4 GPU**  
-4. Upload `train.jsonl` / `valid.jsonl` (Option A) or clone/Drive (B/C)  
-5. Run all cells  
+## Kaggle (recommended if Colab quota is empty)
 
-Training usually takes on the order of **30–90 minutes** on a free T4 for ~850 examples × 2 epochs.
+### Files on your Mac
+| File | Purpose |
+|------|---------|
+| `notebooks/train_lora_kaggle.ipynb` | Unsloth-only train → merge → GGUF (no HF login / llama.cpp) |
+| `data/kaggle_dataset.zip` | Fresh high-diversity set (~3200 train): Task/Exercise labels, C OS, ML+savefig |
+
+**Always regenerate before a final run:**
+
+```bash
+cd Labpulse
+.venv/bin/python data/generate_dataset.py
+```
+
+### Steps (final run)
+1. Open [Kaggle](https://www.kaggle.com) → **New Notebook**
+2. **GPU** + **Internet On**
+3. Import **updated** `train_lora_kaggle.ipynb`
+4. **Add Data** → upload the **new** `data/kaggle_dataset.zip` (remove any old dataset first)
+5. **Run All** — leave session on (~45–90 min)
+6. Download `labpulse-1.5b-q4_k_m.gguf` **immediately**, then **Save Version**
+7. On Mac:
+   ```bash
+   mv ~/Downloads/labpulse-1.5b-q4_k_m.gguf Labpulse/models/labpulse-1.5b-q4_k_m.gguf
+   ```
+8. Restart API **without** `LABPULSE_STUB=1`
+
+### Quality knobs (in notebook config cell)
+- Default **Qwen2.5-Coder-1.5B**, LoRA `r=32`, **3 epochs**
+- Packing + NEFTune + **train on assistant replies only**
+- Set `USE_3B = True` for Coder-3B only if VRAM allows (may OOM on small T4)
+
+---
+
+## Colab (when quota returns)
+
+1. Upload `notebooks/train_lora_colab.ipynb`
+2. Runtime → GPU → T4
+3. Upload `data/colab_dataset.zip` when prompted  
+   *(same new schema as the Kaggle zip)*
+4. Download GGUF → `Labpulse/models/`
+
+> If the Colab notebook still mentions the old report schema in a validation cell, prefer the **Kaggle** notebook — it validates `code` / `output` keys only.
+
+---
+
+## After install
+
+```bash
+cd Labpulse
+GGML_METAL=0 LABPULSE_N_GPU_LAYERS=0 .venv/bin/uvicorn src.api:app --host 127.0.0.1 --port 8080
+```
+
+Then generate ML Lab 06 / OS process lab again and check for real code + graphs, not placeholders.
