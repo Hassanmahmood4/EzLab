@@ -2,6 +2,7 @@ import type {
   ApiError,
   GenerationStage,
   Health,
+  LabTask,
   Preset,
   ReportEdits,
   ReportRecord,
@@ -11,7 +12,14 @@ import type {
   LabDetails,
 } from "./types";
 
-export const API_BASE = process.env.NEXT_PUBLIC_LABPULSE_API ?? "http://127.0.0.1:8080";
+/**
+ * Prefer a same-origin `/backend` proxy (see next.config.ts rewrites) so PDF
+ * iframes are not cross-origin — Chrome often shows a black pane otherwise.
+ * Override with NEXT_PUBLIC_LABPULSE_API when needed.
+ */
+export const API_BASE =
+  process.env.NEXT_PUBLIC_LABPULSE_API ??
+  (typeof window !== "undefined" ? `${window.location.origin}/backend` : "http://127.0.0.1:8080");
 
 export class ApiRequestError extends Error implements ApiError {
   constructor(
@@ -28,7 +36,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     response = await fetch(`${API_BASE}${path}`, init);
   } catch {
-    throw new ApiRequestError("backend_unreachable", "The LabPulse server isn't running.");
+    throw new ApiRequestError("backend_unreachable", "The EzLab server isn't running.");
   }
   if (!response.ok) {
     let code = "http_error";
@@ -70,16 +78,28 @@ export const api = {
   parseManual: (file: File) => {
     const form = new FormData();
     form.append("file", file);
-    return request<{ text: string; fields: LabDetails }>("/manual/parse", { method: "POST", body: form });
+    return request<{ text: string; fields: LabDetails; tasks: LabTask[] }>("/manual/parse", {
+      method: "POST",
+      body: form,
+    });
   },
 };
 
-export function fileUrl(id: string, kind: "pdf" | "docx" | "plot", opts: { download?: boolean; version?: string } = {}) {
+export function fileUrl(
+  id: string,
+  kind: "pdf" | "docx" | "plot" | "preview",
+  opts: { download?: boolean; version?: string } = {},
+) {
   const params = new URLSearchParams();
   if (opts.download) params.set("download", "true");
   if (opts.version) params.set("v", opts.version);
   const query = params.toString();
   return `${API_BASE}/reports/${encodeURIComponent(id)}/files/${kind}${query ? `?${query}` : ""}`;
+}
+
+export function figureUrl(id: string, filename: string, version?: string) {
+  const params = version ? `?v=${encodeURIComponent(version)}` : "";
+  return `${API_BASE}/reports/${encodeURIComponent(id)}/figures/${encodeURIComponent(filename)}${params}`;
 }
 
 export function logoUrl(universityId: string) {
@@ -89,9 +109,9 @@ export function logoUrl(universityId: string) {
 export interface GenerateRequest {
   profile: StudentProfile;
   lab: LabDetails;
-  raw_log?: string;
-  raw_log_name?: string;
-  manual_text?: string;
+  manual_text: string;
+  tasks?: LabTask[];
+  semester?: string;
   submission_date: string;
 }
 
@@ -115,12 +135,29 @@ export async function streamGenerate(
   } catch (error) {
     if (signal.aborted) return onEvent({ type: "cancelled" });
     void error;
-    return onEvent({ type: "error", code: "backend_unreachable", message: "The LabPulse server isn't running." });
+    return onEvent({ type: "error", code: "backend_unreachable", message: "The EzLab server isn't running." });
   }
   if (!response.ok || !response.body) {
-    const message =
-      response.status === 409 ? "Another report is still being generated." : `Generation failed (${response.status}).`;
-    return onEvent({ type: "error", code: response.status === 409 ? "busy" : "http_error", message });
+    if (response.status === 409) {
+      return onEvent({
+        type: "error",
+        code: "busy",
+        message: "Another report is still being generated.",
+      });
+    }
+    let message = `Generation failed (${response.status}).`;
+    try {
+      const detail = await response.json();
+      if (typeof detail?.detail === "string") message = detail.detail;
+      else if (Array.isArray(detail?.detail) && detail.detail[0]?.msg) {
+        const first = detail.detail[0];
+        const where = Array.isArray(first.loc) ? first.loc.filter((x: unknown) => x !== "body").join(".") : "";
+        message = where ? `${where}: ${first.msg}` : first.msg;
+      }
+    } catch {
+      /* keep status fallback */
+    }
+    return onEvent({ type: "error", code: "http_error", message });
   }
 
   const reader = response.body.getReader();
@@ -147,6 +184,6 @@ export async function streamGenerate(
     }
   } catch {
     if (signal.aborted) onEvent({ type: "cancelled" });
-    else onEvent({ type: "error", code: "stream_broken", message: "Lost connection to the LabPulse server." });
+    else onEvent({ type: "error", code: "stream_broken", message: "Lost connection to the EzLab server." });
   }
 }

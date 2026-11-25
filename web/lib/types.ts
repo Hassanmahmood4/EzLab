@@ -1,3 +1,4 @@
+/** Legacy UI helpers still import these; task reports do not use anomaly audit. */
 export type AnomalyStatus = "ok" | "warning" | "error";
 export type TraceStatus = "text" | "grounded" | "normalised" | "derived" | "ungrounded";
 
@@ -14,44 +15,29 @@ export interface CoverPage {
   section: string;
   instructor: string;
   submission_date: string;
+  semester?: string;
 }
 
+export interface LabTask {
+  number: number;
+  title: string;
+  prompt: string;
+  code: string;
+  output: string;
+  /** PNG filenames under /reports/{id}/figures/{name} */
+  figures?: string[];
+}
+
+/** Unused by the task-report path; kept so older UI helpers still typecheck. */
 export interface ReportTable {
   caption: string;
   headers: string[];
   rows: string[][];
 }
-
-export interface ReportBody {
-  abstract: string;
-  apparatus: string[];
-  methodology: string;
-  equations_latex: string[];
-  tables: ReportTable[];
-  plot_code: string;
-  discussion: string;
-  conclusion: string;
-}
-
-export interface LabReport {
-  cover_page: CoverPage;
-  anomaly_check: { status: AnomalyStatus; flags: string[] };
-  report_body: ReportBody;
-}
-
 export interface CellTrace {
   status: TraceStatus;
   line: number | null;
 }
-
-export interface TraceSummary {
-  grounded: number;
-  normalised: number;
-  derived: number;
-  ungrounded: number;
-  total: number;
-}
-
 export interface FlagDetail {
   text: string;
   table: number | null;
@@ -60,11 +46,17 @@ export interface FlagDetail {
   to: string | null;
 }
 
+export interface LabReport {
+  cover_page: CoverPage;
+  tasks: LabTask[];
+}
+
 export interface GenerationStats {
   tokens: number;
   seconds: number;
   tokens_per_second: number;
   peak_rss_gb: number;
+  format_only?: boolean;
 }
 
 export interface LabDetails {
@@ -92,14 +84,21 @@ export interface ReportRecord {
     };
     lab: LabDetails;
     university_id: string | null;
+    semester?: string;
     raw_log_name?: string | null;
   };
   stats: GenerationStats;
-  trace: CellTrace[][][];
-  trace_summary: TraceSummary;
-  flags: FlagDetail[];
-  files: { docx: boolean; pdf: boolean; plot: boolean };
-  render_errors: Partial<Record<"pdf" | "docx" | "plot", string>>;
+  trace: unknown[];
+  trace_summary: {
+    grounded: number;
+    normalised: number;
+    derived: number;
+    ungrounded: number;
+    total: number;
+  };
+  flags: unknown[];
+  files: { docx: boolean; pdf: boolean; plot: boolean; preview?: boolean };
+  render_errors: Partial<Record<"pdf" | "docx" | "plot" | "preview", string>>;
 }
 
 export interface ReportSummary {
@@ -110,8 +109,8 @@ export interface ReportSummary {
   course_title: string;
   lab_number: string;
   experiment_title: string;
-  anomaly_status: AnomalyStatus;
-  files: { docx?: boolean; pdf?: boolean; plot?: boolean };
+  task_count: number;
+  files: { docx?: boolean; pdf?: boolean; plot?: boolean; preview?: boolean };
 }
 
 export interface StudentProfile {
@@ -143,7 +142,9 @@ export interface Preset {
     date: string;
   };
   lab: LabDetails;
-  raw_log: string;
+  semester?: string;
+  manual_text?: string;
+  tasks: LabTask[];
 }
 
 export interface Health {
@@ -171,9 +172,8 @@ export interface ApiError {
 }
 
 export type EditableCoverField = Exclude<keyof CoverPage, "university_id" | "university_raw">;
-export type EditableBodyField = "abstract" | "apparatus" | "methodology" | "discussion" | "conclusion";
 
 export interface ReportEdits {
   cover: Partial<Record<EditableCoverField, string>>;
-  body: Partial<Record<EditableBodyField, string | string[]>>;
+  tasks?: LabTask[];
 }
