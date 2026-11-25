@@ -1,47 +1,66 @@
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
 .venv/
 venv/
 .env
+.Python
+*.so
 
-# MLX / model caches
+# Model weights & caches (download from Hugging Face / Kaggle)
 .cache/
 mlx_models/
 *.gguf
+models/*.gguf
+!models/README.md
+!models/.gitignore
+!models/.gitkeep
 
-# Generated outputs
+# Generated / local runtime outputs
 outputs/
+storage/
 *.pdf
 !templates/**
 plot.png
 resolved_report.json
+preview.png
 
-# Local tooling
-.venv/
+# Dataset zip bundles (jsonl is source of truth)
+data/*.zip
+data/colab_dataset.zip
+data/kaggle_dataset.zip
+
+# Local tooling binaries
 bin/typst
 bin/
 
-# OS / IDE
+# OS / IDE / agents
 .DS_Store
 .idea/
 .vscode/
+.claude/
+.impeccable/
+*.crdownload
+docs/*.crdownload
 
-# Keep adapters tracked once trained; ignore checkpoints mid-train
+# Keep adapters tracked once trained; ignore mid-train checkpoints
 adapters/checkpoint_*/
 adapters/*.pt
-
-# Local GGUF weights (download from Colab)
-models/*.gguf
-bin/
-.venv/
+adapters/*.bin
+adapters/*.safetensors
 
 # Frontend
 web/node_modules/
 web/.next/
 web/*.tsbuildinfo
+web/out/
 
-# Local agent / design working files
-.claude/
-.impeccable/
+# Demo / media scratch (keep repo lean)
+outputs/demo/
+*.webm
+*.mov
+# Allow intentional small screenshots under assets only
+!assets/**/*.png
+!assets/**/*.jpg
