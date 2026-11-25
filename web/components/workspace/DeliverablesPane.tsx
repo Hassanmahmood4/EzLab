@@ -78,15 +78,47 @@ export function DeliverablesPane({ ws }: { ws: Workspace }) {
                 : "The PDF couldn't be rendered. Your Word file is ready to download."}
             </p>
           </div>
-        ) : (
-          <iframe
-            key={version}
-            title={`PDF preview of ${record.id}`}
-            src={`${fileUrl(record.id, "pdf", { version })}#toolbar=0&navpanes=0&view=FitH`}
-            className={`h-full min-h-[28rem] w-full rounded-md border border-rule bg-sheet shadow-page transition-opacity duration-300 ${
+        ) : record.files.preview ? (
+          <div
+            className={`overflow-auto rounded-md border border-rule bg-[#e8eaed] shadow-page transition-opacity duration-300 ${
               ws.isStale ? "opacity-45" : ""
             }`}
-          />
+          >
+            {/* Cover-page raster — PDF plugins often leave iframes blank */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={version}
+              src={fileUrl(record.id, "preview", { version })}
+              alt={`Cover preview of ${record.id}`}
+              className="mx-auto block w-full max-w-[48rem] bg-white shadow-sheet"
+            />
+          </div>
+        ) : (
+          <object
+            key={version}
+            title={`PDF preview of ${record.id}`}
+            data={`${fileUrl(record.id, "pdf", { version })}#toolbar=0&navpanes=0&view=FitH`}
+            type="application/pdf"
+            className={`h-full min-h-[28rem] w-full rounded-md border border-rule bg-white shadow-page transition-opacity duration-300 ${
+              ws.isStale ? "opacity-45" : ""
+            }`}
+          >
+            <iframe
+              title={`PDF preview of ${record.id}`}
+              src={`${fileUrl(record.id, "pdf", { version })}#toolbar=0&navpanes=0&view=FitH`}
+              className="h-full min-h-[28rem] w-full rounded-md bg-white"
+            />
+            <p className="p-4 text-center text-sm text-mute">
+              Preview blocked in this browser.{" "}
+              <a
+                className="font-semibold text-navy underline"
+                href={fileUrl(record.id, "pdf", { download: true, version })}
+              >
+                Download the PDF
+              </a>
+              .
+            </p>
+          </object>
         )}
         {ws.isStale && !pdfMissing && (
           <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-ink/85 px-2.5 py-1 text-xs font-semibold text-white">
