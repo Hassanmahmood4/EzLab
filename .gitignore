@@ -61,6 +61,7 @@ web/out/
 outputs/demo/
 *.webm
 *.mov
-# Allow intentional small screenshots under assets only
+# Allow intentional assets + the official demo reel
 !assets/**/*.png
 !assets/**/*.jpg
+!docs/demo/ezlab_demo.mp4

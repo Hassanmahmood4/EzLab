@@ -4,7 +4,8 @@ Offline CS lab-report copilot for Pakistani universities.
 
 Fine-tuned **Qwen2.5-Coder-1.5B** → GGUF **Q4_K_M**, served with **llama.cpp** on Windows + macOS (~1–2 GB RAM). Parses a lab manual into tasks, writes code + output, exports **Word** and **PDF** with campus cover pages — **100% offline**.
 
-**Model (public):** [HassanM44/ezlab-1.5b-q4_k_m](https://huggingface.co/HassanM44/ezlab-1.5b-q4_k_m)
+**Model (public):** [HassanM44/ezlab-1.5b-q4_k_m](https://huggingface.co/HassanM44/ezlab-1.5b-q4_k_m)  
+**Demo video:** [docs/demo/ezlab_demo.mp4](docs/demo/ezlab_demo.mp4)
 
 ## Quick start
 
