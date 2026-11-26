@@ -17,10 +17,7 @@ model_link: https://huggingface.co/HassanM44/ezlab-1.5b-q4_k_m
 quantization: Q4_K_M
 runtime: llama.cpp (llama-cpp-python)
 hardware_tested: Apple MacBook (CPU / Metal off), ~1–2 GB RAM for the 1.5B Q4 GGUF
-# Public demo reel hosted on the project repo. Prefer also posting on LinkedIn/X
-# tagging Junaid Shaukat + Qwen Pakistan with #QwenLocalHackathon, then replace
-# this URL with that post link if the automated check asks for it.
-demo_video: https://github.com/Hassanmahmood4/EzLab/raw/main/docs/demo/ezlab_demo.mp4
+demo_video: https://lnkd.in/p/d3uED8wC
 repo_link: https://github.com/Hassanmahmood4/EzLab
 before_after:
   prompt: |

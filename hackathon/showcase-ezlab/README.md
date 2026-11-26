@@ -4,7 +4,8 @@
 
 EzLab helps Pakistani CS students turn a lab manual into a submission-ready **Word (.docx)** and **PDF** report on a laptop with **Wi‑Fi off**. The fine-tuned Qwen model writes per-task **code** and **terminal output**; a local Python pipeline validates, runs Python solutions when safe, and renders university cover pages (crests for FAST, NUST, GIKI, COMSATS, Bahria, and more).
 
-**Demo video:** https://github.com/Hassanmahmood4/EzLab/raw/main/docs/demo/ezlab_demo.mp4
+**Demo post:** https://lnkd.in/p/d3uED8wC  
+**Demo reel (repo):** https://github.com/Hassanmahmood4/EzLab/blob/main/docs/demo/ezlab_demo.mp4
 
 ## Why we built it
 
